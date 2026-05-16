@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - SmartEstate</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50">
+
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-home text-blue-600 text-2xl"></i>
+                    <span class="text-xl font-bold text-gray-800">SmartEstate</span>
+                    <span class="text-sm bg-red-100 text-red-800 px-2 py-1 rounded">ADMIN</span>
+                </div>
+                <div class="flex space-x-6">
+                    <a href="/" class="text-gray-700 hover:text-blue-600">Home</a>
+                    <a href="/properties" class="text-gray-700 hover:text-blue-600">Properties</a>
+                    <a href="/analytics" class="text-gray-700 hover:text-blue-600">Analytics</a>
+                    <a href="/admin" class="text-blue-600 font-medium">Admin</a>
+                    <a href="/logout" class="text-red-600 hover:text-red-800">Logout</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold text-gray-800 mb-8">Admin Panel</h1>
+
+        <!-- Stats Cards -->
+        <div class="grid md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="flex items-center">
+                    <div class="bg-blue-100 p-3 rounded-lg">
+                        <i class="fas fa-users text-blue-600 text-2xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-gray-600">Total Users</p>
+                        <p class="text-2xl font-bold text-gray-800">{{ users_count }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="flex items-center">
+                    <div class="bg-green-100 p-3 rounded-lg">
+                        <i class="fas fa-home text-green-600 text-2xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-gray-600">Total Properties</p>
+                        <p class="text-2xl font-bold text-gray-800">{{ properties_count }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="flex items-center">
+                    <div class="bg-purple-100 p-3 rounded-lg">
+                        <i class="fas fa-chart-line text-purple-600 text-2xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-gray-600">Active Sessions</p>
+                        <p class="text-2xl font-bold text-gray-800">N/A</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Properties -->
+        <div class="bg-white rounded-xl shadow-lg p-6">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Recent Properties</h2>
+
+            {% if recent_properties %}
+                <div class="overflow-x-auto">
+                    <table class="min-w-full table-auto">
+                        <thead>
+                            <tr class="bg-gray-50">
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Title</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Location</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Owner</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for property in recent_properties %}
+                            <tr>
+                                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{{ property.title }}</td>
+                                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500">{{ property.location }}</td>
+                                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">₹{{ "%.1f"|format(property.price) }}L</td>
+                                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500">{{ property.owner.username }}</td>
+                                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500">{{ property.created_at.strftime('%Y-%m-%d') }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-gray-500 text-center py-8">No properties found.</p>
+            {% endif %}
+        </div>
+
+        <!-- Admin Actions -->
+        <div class="mt-8 bg-white rounded-xl shadow-lg p-6">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Admin Actions</h2>
+            <div class="grid md:grid-cols-2 gap-4">
+                <button class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition">
+                    <i class="fas fa-users mr-2"></i>Manage Users
+                </button>
+                <button class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition">
+                    <i class="fas fa-home mr-2"></i>Manage Properties
+                </button>
+                <button class="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition">
+                    <i class="fas fa-chart-bar mr-2"></i>View Analytics
+                </button>
+                <button class="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition">
+                    <i class="fas fa-cog mr-2"></i>System Settings
+                </button>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

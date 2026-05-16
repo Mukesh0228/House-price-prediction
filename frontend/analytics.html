@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics - SmartEstate</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.plot.ly/plotly-2.26.0.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64,AAABAAEAEBAAAAEAIABoBAAAFgAAACgAAAAQAAAAIAAAAAEAIAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP//AAD//wAA//8AAP//AAD//wAA//8AAP//AAD//wAA//8AAP//AAD//wAA//8AAP//AAD//wAA//8AAA==" />
+</head>
+<body class="bg-gray-50">
+
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-home text-blue-600 text-2xl"></i>
+                    <span class="text-xl font-bold text-gray-800">SmartEstate</span>
+                </div>
+                <div class="flex space-x-6">
+                    <a href="/" class="text-gray-700 hover:text-blue-600">Home</a>
+                    <a href="/properties" class="text-gray-700 hover:text-blue-600">Properties</a>
+                    <a href="/analytics" class="text-blue-600 font-medium">Analytics</a>
+                    {% if current_user.is_authenticated %}
+                        <a href="/dashboard" class="text-gray-700 hover:text-blue-600">Dashboard</a>
+                        <a href="/logout" class="text-red-600 hover:text-red-800">Logout</a>
+                    {% else %}
+                        <a href="/login" class="text-gray-700 hover:text-blue-600">Login</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold text-gray-800 mb-8">Market Analytics</h1>
+
+        <!-- Charts Container -->
+        <div class="grid lg:grid-cols-2 gap-8">
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Average Property Prices by Location</h2>
+                <div id="priceChart" class="w-full h-80"></div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Property Types Distribution</h2>
+                <div id="typeChart" class="w-full h-80"></div>
+            </div>
+        </div>
+
+        <!-- Market Insights -->
+        <div class="mt-8 bg-white rounded-xl shadow-lg p-6">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Market Insights</h2>
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="text-center p-4 bg-blue-50 rounded-lg">
+                    <i class="fas fa-trending-up text-3xl text-blue-600 mb-2"></i>
+                    <h3 class="text-lg font-semibold text-gray-800">Price Trends</h3>
+                    <p class="text-gray-600">Monitor how property prices change across different locations in Bangalore.</p>
+                </div>
+                <div class="text-center p-4 bg-green-50 rounded-lg">
+                    <i class="fas fa-home text-3xl text-green-600 mb-2"></i>
+                    <h3 class="text-lg font-semibold text-gray-800">Property Types</h3>
+                    <p class="text-gray-600">Understand the distribution of apartments, houses, and villas in the market.</p>
+                </div>
+                <div class="text-center p-4 bg-purple-50 rounded-lg">
+                    <i class="fas fa-chart-pie text-3xl text-purple-600 mb-2"></i>
+                    <h3 class="text-lg font-semibold text-gray-800">Investment Insights</h3>
+                    <p class="text-gray-600">Identify high-growth areas and property types for better investment decisions.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Key Statistics -->
+        <div class="mt-8 bg-white rounded-xl shadow-lg p-6">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Key Statistics</h2>
+            <div class="grid md:grid-cols-4 gap-6">
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-blue-600 mb-2">240+</div>
+                    <p class="text-gray-600">Locations Covered</p>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-green-600 mb-2">7,000+</div>
+                    <p class="text-gray-600">Properties Analyzed</p>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-purple-600 mb-2">95%</div>
+                    <p class="text-gray-600">Prediction Accuracy</p>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-orange-600 mb-2">24/7</div>
+                    <p class="text-gray-600">Real-time Updates</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Parse the graph data from Flask
+        let graphs = [];
+        try {
+            const rawData = '{{ graphJSON|safe }}';
+            if (rawData && rawData.length > 2) {
+                graphs = JSON.parse(rawData);
+            }
+        } catch (error) {
+            console.error('Error parsing graph data:', error);
+            graphs = [];
+        }
+
+        // Render the charts
+        if (graphs && Array.isArray(graphs) && graphs.length > 0) {
+            // Price chart
+            if (graphs[0] && graphs[0].data && Array.isArray(graphs[0].data) && graphs[0].data.length > 0) {
+                Plotly.newPlot('priceChart', graphs[0].data, graphs[0].layout || {});
+            } else {
+                document.getElementById('priceChart').innerHTML = '<div class="flex items-center justify-center h-full text-gray-500">No data available</div>';
+            }
+
+            // Type chart
+            if (graphs[1] && graphs[1].data && Array.isArray(graphs[1].data) && graphs[1].data.length > 0) {
+                Plotly.newPlot('typeChart', graphs[1].data, graphs[1].layout || {});
+            } else {
+                document.getElementById('typeChart').innerHTML = '<div class="flex items-center justify-center h-full text-gray-500">No data available</div>';
+            }
+        } else {
+            // Fallback if no data
+            document.getElementById('priceChart').innerHTML = '<div class="flex items-center justify-center h-full text-gray-500">No data available</div>';
+            document.getElementById('typeChart').innerHTML = '<div class="flex items-center justify-center h-full text-gray-500">No data available</div>';
+        }
+    </script>
+
+</body>
+</html>

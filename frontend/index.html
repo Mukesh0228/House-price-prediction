@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Real Estate Insights - Bangalore Property Platform</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%23244a63' width='100' height='100'/><text x='50' y='65' font-size='60' font-weight='bold' text-anchor='middle' fill='%23fff'>🏠</text></svg>">
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+    <script src="https://cdn.plot.ly/plotly-2.26.0.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .hero-bg { background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1600&q=80'); }
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #2563eb; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; display: none; margin: 10px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .property-card:hover { transform: translateY(-5px); transition: all 0.3s ease; }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-home text-blue-600 text-2xl"></i>
+                    <span class="text-xl font-bold text-gray-800">SmartEstate</span>
+                </div>
+                <div class="hidden md:flex space-x-6">
+                    <a href="#home" class="text-gray-700 hover:text-blue-600">Home</a>
+                    <a href="#predictor" class="text-gray-700 hover:text-blue-600">Price Predictor</a>
+                    <a href="/properties" class="text-gray-700 hover:text-blue-600">Properties</a>
+                    <a href="/analytics" class="text-gray-700 hover:text-blue-600">Analytics</a>
+                    {% if current_user.is_authenticated %}
+                        <a href="/dashboard" class="text-gray-700 hover:text-blue-600">Dashboard</a>
+                        <a href="/logout" class="text-red-600 hover:text-red-800">Logout</a>
+                    {% else %}
+                        <a href="/login" class="text-blue-600 hover:text-blue-800">Login</a>
+                        <a href="/register" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Register</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero-bg bg-cover bg-center bg-no-repeat py-20">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <h1 class="text-4xl md:text-6xl font-bold text-white mb-6">
+                Smart Real Estate Insights
+            </h1>
+            <p class="text-xl text-gray-200 mb-8 max-w-2xl mx-auto">
+                Discover Bangalore's property market with AI-powered price predictions,
+                comprehensive listings, and data-driven insights.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="#predictor" class="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition">
+                    Get Price Estimate
+                </a>
+                <a href="/properties" class="bg-white text-blue-600 px-8 py-3 rounded-lg hover:bg-gray-100 transition">
+                    Browse Properties
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="py-16 bg-white">
+        <div class="max-w-7xl mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center text-gray-800 mb-12">Why Choose SmartEstate?</h2>
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="text-center p-6">
+                    <i class="fas fa-brain text-4xl text-blue-600 mb-4"></i>
+                    <h3 class="text-xl font-semibold mb-2">AI Price Prediction</h3>
+                    <p class="text-gray-600">Get accurate property price estimates using advanced machine learning models trained on real market data.</p>
+                </div>
+                <div class="text-center p-6">
+                    <i class="fas fa-search text-4xl text-green-600 mb-4"></i>
+                    <h3 class="text-xl font-semibold mb-2">Smart Search</h3>
+                    <p class="text-gray-600">Find properties that match your criteria with advanced filtering and search capabilities.</p>
+                </div>
+                <div class="text-center p-6">
+                    <i class="fas fa-chart-line text-4xl text-purple-600 mb-4"></i>
+                    <h3 class="text-xl font-semibold mb-2">Market Analytics</h3>
+                    <p class="text-gray-600">Access comprehensive market insights with interactive charts and trend analysis.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Price Predictor Section -->
+    <section id="predictor" class="py-16 bg-gray-50">
+        <div class="max-w-4xl mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center text-gray-800 mb-8">Property Price Predictor</h2>
+            <div class="bg-white rounded-xl shadow-lg p-8">
+                <form id="predictionForm" class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Location</label>
+                        <select id="uiLocations" name="location" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="" disabled selected>Choose a Location</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Area (sqft)</label>
+                        <input type="number" id="uiSqft" name="sqft" required min="100" max="10000"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">BHK</label>
+                        <select id="uiBhk" name="bhk" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="" disabled selected>Select BHK</option>
+                            <option value="1">1 BHK</option>
+                            <option value="2">2 BHK</option>
+                            <option value="3">3 BHK</option>
+                            <option value="4">4 BHK</option>
+                            <option value="5">5+ BHK</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Bathrooms</label>
+                        <select id="uiBath" name="bath" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="" disabled selected>Select Bathrooms</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4+</option>
+                        </select>
+                    </div>
+                    <div class="md:col-span-2">
+                        <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition">
+                            <i class="fas fa-calculator mr-2"></i>Estimate Price
+                        </button>
+                    </div>
+                </form>
+                <div id="predictionResult" class="mt-6 p-4 bg-blue-50 rounded-lg hidden">
+                    <h3 class="text-lg font-semibold text-blue-800">Estimated Price</h3>
+                    <p id="resultText" class="text-2xl font-bold text-blue-600 mt-2"></p>
+                </div>
+                <div class="loader" id="loader"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Properties -->
+    <section class="py-16 bg-white">
+        <div class="max-w-7xl mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center text-gray-800 mb-8">Featured Properties</h2>
+            <div class="grid md:grid-cols-3 gap-8">
+                {% for property in properties %}
+                <div class="property-card bg-white rounded-xl shadow-lg overflow-hidden">
+                    {% if property.image_filename %}
+                        {% if property.image_filename.startswith('http') %}
+                            <img src="{{ property.image_filename }}" alt="{{ property.title }}" class="w-full h-48 object-cover" onerror="this.onerror=null;this.src='/static/images/placeholder.svg';">
+                        {% else %}
+                            <img src="/static/uploads/{{ property.image_filename }}" alt="{{ property.title }}" class="w-full h-48 object-cover" onerror="this.onerror=null;this.src='/static/images/placeholder.svg';">
+                        {% endif %}
+                    {% else %}
+                        <div class="w-full h-48 bg-gray-200 flex items-center justify-center">
+                            <i class="fas fa-home text-4xl text-gray-400"></i>
+                        </div>
+                    {% endif %}
+                    <div class="p-6">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-2">{{ property.title }}</h3>
+                        <p class="text-gray-600 mb-2"><i class="fas fa-map-marker-alt mr-1"></i>{{ property.location }}</p>
+                        <p class="text-gray-600 mb-2">{{ property.bhk }} BHK • {{ property.area_sqft }} sqft</p>
+                        <p class="text-2xl font-bold text-blue-600">₹{{ "%.1f"|format(property.price) }}L</p>
+                        <a href="{{ url_for('properties.property_detail', id=property.id) }}"
+                           class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition text-center block mt-4">
+                            View Details
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="text-center mt-8">
+                <a href="/properties" class="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition">
+                    View All Properties
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-12">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="grid md:grid-cols-4 gap-8">
+                <div>
+                    <div class="flex items-center space-x-2 mb-4">
+                        <i class="fas fa-home text-blue-400 text-2xl"></i>
+                        <span class="text-xl font-bold">SmartEstate</span>
+                    </div>
+                    <p class="text-gray-400">Your trusted partner for Bangalore real estate insights and property management.</p>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Quick Links</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#predictor" class="text-gray-400 hover:text-white">Price Predictor</a></li>
+                        <li><a href="/properties" class="text-gray-400 hover:text-white">Properties</a></li>
+                        <li><a href="/analytics" class="text-gray-400 hover:text-white">Analytics</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Services</h3>
+                    <ul class="space-y-2">
+                        <li class="text-gray-400">Property Valuation</li>
+                        <li class="text-gray-400">Market Analysis</li>
+                        <li class="text-gray-400">Investment Insights</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Contact</h3>
+                    <p class="text-gray-400">support@smartestate.com</p>
+                    <p class="text-gray-400">+91 98765 43210</p>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center">
+                <p class="text-gray-400">&copy; 2025 SmartEstate. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Load locations on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch('/api/get_location_names')
+                .then(response => response.json())
+                .then(data => {
+                    const select = document.getElementById('uiLocations');
+                    data.locations.forEach(location => {
+                        const option = document.createElement('option');
+                        option.value = location;
+                        option.textContent = location;
+                        select.appendChild(option);
+                    });
+                })
+                .catch(error => console.error('Error loading locations:', error));
+        });
+
+        // Handle prediction form submission
+        document.getElementById('predictionForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const loader = document.getElementById('loader');
+            const result = document.getElementById('predictionResult');
+            const resultText = document.getElementById('resultText');
+
+            loader.style.display = 'block';
+            result.classList.add('hidden');
+
+            const formData = new FormData(this);
+            const data = {
+                location: formData.get('location'),
+                sqft: parseFloat(formData.get('sqft')),
+                bhk: parseInt(formData.get('bhk')),
+                bath: parseInt(formData.get('bath'))
+            };
+
+            fetch('/api/predict_home_price', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                loader.style.display = 'none';
+                if (data.estimated_price && data.estimated_price > 0) {
+                    resultText.textContent = `₹${data.estimated_price} Lakhs`;
+                    result.classList.remove('hidden');
+                } else {
+                    resultText.textContent = 'Unable to estimate price. Please try different inputs.';
+                    result.classList.remove('hidden');
+                }
+            })
+            .catch(error => {
+                loader.style.display = 'none';
+                console.error('Error:', error);
+                resultText.textContent = 'Error occurred. Please try again.';
+                result.classList.remove('hidden');
+            });
+        });
+    </script>
+
+</body>
+</html>
+        </div>
+    </div>
+
+    <!-- JavaScript (unchanged) -->
+    <script>
+        const predictionForm = document.getElementById('predictionForm');
+        const locationsSelect = document.getElementById('uiLocations');
+        const estimatedPriceDisplay = document.getElementById('uiEstimatedPrice');
+        const errorMessageDisplay = document.getElementById('errorMessage');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const serverUrl = window.location.origin;
+
+        async function loadLocations() {
+            estimatedPriceDisplay.textContent = '';
+            errorMessageDisplay.textContent = '';
+            try {
+                const response = await fetch(`${serverUrl}/api/get_location_names`);
+                if (!response.ok) throw new Error(`HTTP error! ${response.status}`);
+                const data = await response.json();
+                if (data.locations) {
+                    locationsSelect.innerHTML = '<option value="" disabled selected>Choose a Location</option>';
+                    data.locations.forEach(location => {
+                        const option = document.createElement('option');
+                        option.value = location;
+                        option.textContent = location.replaceAll('_', ' ')
+                            .replace(/\b\w/g, c => c.toUpperCase());
+                        locationsSelect.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                errorMessageDisplay.textContent = 'Error loading locations. Please refresh.';
+            }
+        }
+
+        async function estimatePrice(event) {
+            event.preventDefault();
+            estimatedPriceDisplay.textContent = '';
+            errorMessageDisplay.textContent = '';
+            loadingIndicator.style.display = 'block';
+
+            const formData = new FormData(predictionForm);
+
+            try {
+                const response = await fetch(`${serverUrl}/api/predict_home_price`, { method: 'POST', body: formData });
+                loadingIndicator.style.display = 'none';
+                if (!response.ok) throw new Error(`HTTP error! ${response.status}`);
+                const data = await response.json();
+                if (data.estimated_price !== undefined) {
+                    let price = parseFloat(data.estimated_price);
+                    let displayPrice = price >= 100 ? (price / 100).toFixed(2) + " Crore" : price.toFixed(2) + " Lakh";
+                    estimatedPriceDisplay.textContent = `Estimated Price: ₹ ${displayPrice}`;
+                } else {
+                    throw new Error(data.error || "Invalid response format");
+                }
+            } catch (error) {
+                loadingIndicator.style.display = 'none';
+                errorMessageDisplay.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        predictionForm.addEventListener('submit', estimatePrice);
+        window.onload = loadLocations;
+    </script>
+</body>
+</html>
